@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from ldap3 import ALL, Server, Connection, NTLM, SASL, KERBEROS, extend, SUBTREE, Tls
+from ldap3 import ALL, Server, Connection, NTLM, SASL, KERBEROS, extend, SUBTREE, Tls, TLS_CHANNEL_BINDING
 import argparse
 from binascii import hexlify
 from Cryptodome.Hash import MD4
@@ -16,6 +16,8 @@ parser.add_argument('-p','--password', help='password for LDAP (or LM:NT hash)',
 parser.add_argument('-k','--kerberos', help='use kerberos authentication',required=False, action='store_true')
 parser.add_argument('-l','--ldapserver', help='LDAP server (or domain)', required=False)
 parser.add_argument('-d','--domain', help='Domain', required=True)
+
+parser.add_argument('-c','--channel-binding', help='Enable channel binding', required=False, action='store_true')
 
 class MSDS_MANAGEDPASSWORD_BLOB(Structure):
     structure = (
@@ -80,9 +82,11 @@ def main():
 
     ldap_domain = args.domain if not args.ldapserver else args.ldapserver
     server = Server(ldap_domain, use_ssl=use_ssl, tls=tls, get_info=ALL, port=port)
+    channel_binding = TLS_CHANNEL_BINDING if args.channel_binding else None
+
 
     if not args.kerberos:
-        conn = Connection(server, user='{}\\{}'.format(args.domain, args.username), password=args.password, authentication=NTLM, auto_bind=True)
+        conn = Connection(server, user='{}\\{}'.format(args.domain, args.username), password=args.password, authentication=NTLM, auto_bind=True, channel_binding=channel_binding)
     else:
         conn = Connection(server, authentication=SASL, sasl_mechanism=KERBEROS, auto_bind=True)
 
