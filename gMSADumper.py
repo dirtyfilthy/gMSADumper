@@ -7,6 +7,7 @@ from impacket.ldap.ldaptypes import ACE, ACCESS_ALLOWED_OBJECT_ACE, ACCESS_MASK,
 from impacket.structure import Structure
 from impacket.krb5 import constants
 from impacket.krb5.crypto import string_to_key
+import ssl
 import sys
 
 parser = argparse.ArgumentParser(description='Dump gMSA Passwords')
@@ -68,12 +69,17 @@ def main():
         sys.exit(-1)
     if args.username and not args.password:
         print("specify a password or use -k for kerberos authentication")
-        sys.exit(-1)    
+        sys.exit(-1)  
 
-    if args.ldapserver:
-        server = Server(args.ldapserver, get_info=ALL)
-    else:
-        server = Server(args.domain, get_info=ALL)
+
+    use_ssl = True
+    version = ssl.PROTOCOL_TLSv1_2
+    tls = Tls(validate=ssl.CERT_NONE, version=version,
+                            ciphers='ALL:@SECLEVEL=0')
+    port = 636
+
+    ldap_domain = args.domain if not args.ldapserver else args.ldapserver
+    server = Server(ldap_domain, use_ssl=use_ssl, tls=tls, get_info=ALL, port=port)
 
     if not args.kerberos:
         conn = Connection(server, user='{}\\{}'.format(args.domain, args.username), password=args.password, authentication=NTLM, auto_bind=True)
