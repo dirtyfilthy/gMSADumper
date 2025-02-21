@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from ldap3 import ALL, Server, Connection, NTLM, SASL, KERBEROS, extend, SUBTREE
+from ldap3 import ALL, Server, Connection, NTLM, SASL, KERBEROS, extend, SUBTREE, Tls
 import argparse
 from binascii import hexlify
 from Cryptodome.Hash import MD4
